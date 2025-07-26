@@ -166,6 +166,34 @@
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s ease;
+            background-color: #f5f5f5;
+        }
+        
+        .photo-item img:not([src]), 
+        .photo-item img[src=""] {
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f5f5f5"/><circle cx="50" cy="35" r="8" fill="%23ddd"/><path d="M20 70 L35 55 L50 70 L70 50 L80 60 L80 80 L20 80 Z" fill="%23ddd"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 60px 60px;
+        }
+        
+        .photo-item .error-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-color: #f5f5f5;
+            color: #999;
+            font-size: 0.9rem;
+            text-align: center;
+            flex-direction: column;
+        }
+        
+        .photo-item .error-placeholder i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
         }
         
         .photo-item:hover img {
@@ -514,6 +542,44 @@
             img.alt = `${config.prefix} ${imageIndex}`;
             img.loading = 'lazy';
             
+            // 添加圖片載入錯誤處理
+            img.onerror = function() {
+                this.style.display = 'none';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-placeholder';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-image"></i>
+                    <div>圖片載入中...</div>
+                `;
+                photoItem.appendChild(errorDiv);
+                
+                // 重試載入
+                setTimeout(() => {
+                    const retryImg = document.createElement('img');
+                    retryImg.src = this.dataset.src || this.src;
+                    retryImg.onload = () => {
+                        photoItem.removeChild(errorDiv);
+                        this.style.display = 'block';
+                        this.src = retryImg.src;
+                    };
+                    retryImg.onerror = () => {
+                        errorDiv.innerHTML = `
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>圖片無法載入</div>
+                        `;
+                    };
+                }, 2000);
+            };
+            
+            // 添加圖片載入成功處理
+            img.onload = function() {
+                this.style.opacity = '0';
+                this.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    this.style.opacity = '1';
+                }, 100);
+            };
+            
             photoItem.appendChild(img);
             return photoItem;
         }
@@ -526,11 +592,25 @@
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const img = entry.target;
-                            img.src = img.dataset.src;
-                            img.removeAttribute('data-src');
-                            imageObserver.unobserve(img);
+                            
+                            // 預載入圖片
+                            const tempImg = new Image();
+                            tempImg.onload = () => {
+                                img.src = img.dataset.src;
+                                img.removeAttribute('data-src');
+                                imageObserver.unobserve(img);
+                            };
+                            tempImg.onerror = () => {
+                                // 如果預載入失敗，直接設置 src 讓錯誤處理器處理
+                                img.src = img.dataset.src;
+                                img.removeAttribute('data-src');
+                                imageObserver.unobserve(img);
+                            };
+                            tempImg.src = img.dataset.src;
                         }
                     });
+                }, {
+                    rootMargin: '50px'
                 });
                 
                 images.forEach(img => imageObserver.observe(img));
