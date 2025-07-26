@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allen & Dora Wedding Photos Gallery</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Crimson+Text:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Crimson Text', serif;
+            background: #fefefe;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+            border-bottom: 2px solid #e8e8e8;
+            margin-bottom: 40px;
+        }
+        
+        .main-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 300;
+            color: #222;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.8rem;
+            color: #666;
+            font-weight: 400;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+        
+        .category-selector {
+            margin: 0 auto 50px;
+            max-width: 600px;
+        }
+        
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .dropdown-btn {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-family: 'Crimson Text', serif;
+            background: white;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        
+        .dropdown-btn:hover {
+            border-color: #999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            width: 100%;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1000;
+            border: 2px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            position: relative;
+            color: #555;
+        }
+        
+        .dropdown-item::before {
+            content: "— ";
+            color: #999;
+            font-weight: 300;
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f8f8;
+            color: #222;
+            padding-left: 25px;
+        }
+        
+        .dropdown-item:hover::before {
+            color: #666;
+            margin-right: 12px;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .gallery-container {
+            min-height: 400px;
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .photo-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .photo-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #ccc;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .photo-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        .video-container {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Lightbox styles */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .lightbox.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+        
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 10px;
+        }
+        
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+        
+        .lightbox-nav:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .lightbox-prev {
+            left: -80px;
+        }
+        
+        .lightbox-next {
+            right: -80px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .no-photos {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.3rem;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.4rem;
+                letter-spacing: 2px;
+            }
+            
+            .photo-grid {
+                gap: 10px;
+            }
+            
+            .lightbox-nav {
+                font-size: 1.5rem;
+                padding: 10px 15px;
+            }
+            
+            .lightbox-prev {
+                left: -60px;
+            }
+            
+            .lightbox-next {
+                right: -60px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .lightbox-nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="main-title">Allen & Dora Wedding Photos Gallery</h1>
+            <p class="subtitle">2025.06.14</p>
+            
+            <div class="category-selector">
+                <div class="dropdown">
+                    <button class="dropdown-btn" onclick="toggleDropdown()">
+                        <span id="selected-category">請選擇相簿分類</span>
+                        <i class="fas fa-chevron-down" id="dropdown-icon"></i>
+                    </button>
+                    <div class="dropdown-content" id="dropdown-content">
+                        <div class="dropdown-item" onclick="selectCategory('ceremony', '婚禮照片', 516)">婚禮照片</div>
+                        <div class="dropdown-item" onclick="selectCategory('video', '婚禮影片', 0)">婚禮影片</div>
+                        <div class="dropdown-item" onclick="selectCategory('happiness', '幸福花絮', 96)">幸福花絮</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="gallery-container" id="gallery-container">
+            <div class="no-photos">
+                <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                <p>請從上方選單選擇要瀏覽的相簿分類</p>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+            <button class="lightbox-nav lightbox-prev" onclick="prevImage()">‹</button>
+            <img id="lightbox-img" src="" alt="">
+            <button class="lightbox-nav lightbox-next" onclick="nextImage()">›</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentCategory = null;
+        let currentImages = [];
+        let loadedImages = 0;
+        let totalImages = 0;
+        let currentLightboxIndex = 0;
+        let isLoading = false;
+        
+        const categoryConfig = {
+            ceremony: { folder: 'photos4', prefix: 'ceremony', total: 516 },
+            happiness: { folder: 'photos1', prefix: 'invitation', total: 96 }
+        };
+        
+        function toggleDropdown() {
+            const dropdownContent = document.getElementById('dropdown-content');
+            const icon = document.getElementById('dropdown-icon');
+            
+            dropdownContent.classList.toggle('show');
+            icon.style.transform = dropdownContent.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-btn') && !event.target.matches('.dropdown-btn *')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                        document.getElementById('dropdown-icon').style.transform = 'rotate(0deg)';
+                    }
+                }
+            }
+        }
+        
+        function selectCategory(category, displayName, total) {
+            document.getElementById('selected-category').textContent = displayName;
+            document.getElementById('dropdown-content').classList.remove('show');
+            document.getElementById('dropdown-icon').style.transform = 'rotate(0deg)';
+            
+            currentCategory = category;
+            loadedImages = 0;
+            currentImages = [];
+            
+            const container = document.getElementById('gallery-container');
+            
+            if (category === 'video') {
+                showVideo();
+            } else {
+                totalImages = total;
+                container.innerHTML = '<div class="photo-grid" id="photo-grid"></div>';
+                loadMoreImages();
+                setupInfiniteScroll();
+            }
+        }
+        
+        function showVideo() {
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = `
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/vMYUbfsUaew?si=oh8SKJasKMzj0ZGl" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function loadMoreImages() {
+            if (isLoading || !currentCategory || currentCategory === 'video' || loadedImages >= totalImages) {
+                return;
+            }
+            
+            isLoading = true;
+            const container = document.getElementById('photo-grid');
+            
+            // Show loading indicator
+            if (loadedImages === 0) {
+                container.innerHTML = `
+                    <div class="loading" style="grid-column: 1 / -1;">
+                        <div class="loading-spinner"></div>
+                        載入中...
+                    </div>
+                `;
+            }
+            
+            setTimeout(() => {
+                if (loadedImages === 0) {
+                    container.innerHTML = '';
+                }
+                
+                const config = categoryConfig[currentCategory];
+                const batchSize = Math.min(30, totalImages - loadedImages);
+                
+                for (let i = 0; i < batchSize; i++) {
+                    const imageIndex = loadedImages + i + 1;
+                    const photoItem = createPhotoItem(config, imageIndex);
+                    container.appendChild(photoItem);
+                    currentImages.push({
+                        thumb: `${config.folder}/thumb-${config.prefix}-${imageIndex}.jpg`,
+                        full: `${config.folder}/${config.prefix}-${imageIndex}.jpg`,
+                        index: currentImages.length
+                    });
+                }
+                
+                loadedImages += batchSize;
+                isLoading = false;
+                
+                // Setup lazy loading for new images
+                setupLazyLoading();
+            }, 300);
+        }
+        
+        function createPhotoItem(config, imageIndex) {
+            const photoItem = document.createElement('div');
+            photoItem.className = 'photo-item';
+            photoItem.onclick = () => openLightbox(currentImages.length - (loadedImages - imageIndex + 1));
+            
+            const img = document.createElement('img');
+            img.dataset.src = `${config.folder}/thumb-${config.prefix}-${imageIndex}.jpg`;
+            img.alt = `${config.prefix} ${imageIndex}`;
+            img.loading = 'lazy';
+            
+            photoItem.appendChild(img);
+            return photoItem;
+        }
+        
+        function setupLazyLoading() {
+            const images = document.querySelectorAll('img[data-src]');
+            
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                            imageObserver.unobserve(img);
+                        }
+                    });
+                });
+                
+                images.forEach(img => imageObserver.observe(img));
+            } else {
+                // Fallback for older browsers
+                images.forEach(img => {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                });
+            }
+        }
+        
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', () => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
+                    loadMoreImages();
+                }
+            });
+        }
+        
+        function openLightbox(index) {
+            currentLightboxIndex = index;
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            
+            img.src = currentImages[index].full;
+            lightbox.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeLightbox(event) {
+            if (event && event.target !== event.currentTarget) return;
+            
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function nextImage() {
+            if (currentLightboxIndex < currentImages.length - 1) {
+                currentLightboxIndex++;
+                document.getElementById('lightbox-img').src = currentImages[currentLightboxIndex].full;
+            }
+        }
+        
+        function prevImage() {
+            if (currentLightboxIndex > 0) {
+                currentLightboxIndex--;
+                document.getElementById('lightbox-img').src = currentImages[currentLightboxIndex].full;
+            }
+        }
+        
+        // Keyboard navigation for lightbox
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('lightbox').classList.contains('show')) {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowRight') {
+                    nextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    prevImage();
+                }
+            }
+        });
+        
+        // Prevent context menu on images
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
